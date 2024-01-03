@@ -6,7 +6,7 @@ baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://plevantem.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: BufanDeng
 github_username:  Bufan Deng
-avatar: memoji 1.png
+avatar: memoji 1.jpg
 location: Shenzhen, CN
 
 # Build settings
