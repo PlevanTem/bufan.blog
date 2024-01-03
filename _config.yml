@@ -7,7 +7,7 @@ url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: BufanDeng
 github_username:  Bufan Deng
 avatar: /data/memoji 1.jpg
-skin: Daylight
+skin: daylight
 
 # Build settings
 plugins:
@@ -17,6 +17,7 @@ plugins:
   - jekyll-paginate
 
 remote_theme: ngzhio/jekyll-theme-hamilton
+
 
 # exclude:
 #   - .sass-cache/
