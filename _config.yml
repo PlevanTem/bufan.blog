@@ -15,7 +15,6 @@ plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
   - jekyll-paginate
-  - jekyll-include-cache
 
 remote_theme: ngzhio/jekyll-theme-hamilton
 
