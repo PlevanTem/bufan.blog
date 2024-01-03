@@ -19,7 +19,7 @@ plugins:
 
 remote_theme: ngzhio/jekyll-theme-hamilton
 
-exclude:
+# exclude:
 #   - .sass-cache/
 #   - .jekyll-cache/
 #   - gemfiles/
