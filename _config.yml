@@ -4,8 +4,10 @@ description: >- # this means to ignore newlines until "baseurl:"
       Start from 2024/1/3.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: bufan666
-github_username:  bufan deng
+twitter_username: BufanDeng
+github_username:  Bufan Deng
+avatar: /data/memoji 1.jpg
+skin: Daylight
 
 # Build settings
 plugins:
