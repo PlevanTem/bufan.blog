@@ -1,12 +1,12 @@
 title: Bufan's blog
 email: plevantem@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
+      Intersection of design, AI and Bufan's life. 
       Start from 2024/1/3.
-baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://plevantem.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: BufanDeng
 github_username:  Bufan Deng
-avatar: memoji 1.jpg
+avatar: memoji 1.png
 location: Shenzhen, CN
 
 # Build settings
@@ -22,5 +22,3 @@ remote_theme: ngzhio/jekyll-theme-hamilton
 
 exclude:
   - README.md
-
-lang: en
