@@ -3,7 +3,7 @@ layout: post
 title:  "Prompt For Summary"
 date:   2024-01-18 09:54:35 +0800
 categories: AI
-tags: ChatGPT, Prompt Engineering, 
+tags: [ChatGPT, Prompt]
 ---
 
 
