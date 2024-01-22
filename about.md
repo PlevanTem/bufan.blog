@@ -4,6 +4,5 @@ title: About
 permalink: /about/
 ---
 
-Hi,   
-Hyyge
+Hi! Another strange, lonly and unique soul.
 
