@@ -24,7 +24,7 @@ end
 gem "jekyll-remote-theme"
 gem "jekyll-paginate"
 gem "jekyll-sitemap"
-gem 'html-proofer', '~> 3.4'
+gem 'html-proofer', '~> 5.0.8'
 
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem
 # and associated library.
