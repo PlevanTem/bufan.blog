@@ -4,5 +4,5 @@ title: About
 permalink: /about/
 ---
 
-Hi! Another strange, lonly and unique soul.
+Hi! Another strange, lonely and unique soul.
 
