@@ -6,7 +6,7 @@ categories: AI
 tags: [ChatGPT, Prompt]
 ---
 
-This article is a collection of my most often used original prompt for reading and summarizing.
+This article is a collection of my most often used original prompt for reading and summarizing.<!--more-->
 
 
 ### Guided Reading with PQ3R method（读前准备）
