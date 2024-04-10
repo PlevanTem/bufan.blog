@@ -9,6 +9,7 @@ github_username:  Bufan Deng
 avatar: memoji 1.png
 location: Shenzhen, CN
 show_excerpts: true
+excerpt_separator: <!--more-->
 # Build settings
 plugins:
   - jekyll-remote-theme
