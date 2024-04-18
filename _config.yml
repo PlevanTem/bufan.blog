@@ -24,7 +24,7 @@ remote_theme: ngzhio/jekyll-theme-hamilton
 destination: ./_site
 layouts_dir: ./_layouts
 
-skin: Midnight
+skin: midnight
 
 exclude:
   - README.md
