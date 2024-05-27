@@ -3,7 +3,7 @@ layout: post
 title:  "Prompt For Summary"
 date:   2024-01-18 09:54:35 +0800
 categories: AI
-tags: [ChatGPT, Prompt]
+tags: [ChatGPT,Prompt]
 ---
 
 This article is a collection of my most often used original prompt for reading and summarizing.
