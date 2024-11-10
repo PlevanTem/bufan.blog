@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "基于脚本和LLM快速导出关注的微信公众号列表"
-date:   2024-05-27 23:01:35 +0800
+date:   2024-11-087 23:01:35 +0800
 categories: 闲着没事干
 tags: [知识整理,Workflow,Prompt]
 ---
