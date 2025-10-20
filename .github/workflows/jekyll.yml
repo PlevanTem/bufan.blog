@@ -27,7 +27,7 @@ jobs:
         with:
           provider: 'github'         # Default is github
           token: ${{ secrets.GITHUB_TOKEN }} # It's your Personal Access Token(PAT)
-          ssh_private_key: 'secrets.SSH_PRIVATE_KEY'        # It's your SSH private key (SSH approach)
+          ssh_private_key: 'SHA256:oy4HWcUUT/5bzOLaxSsOoUu8rQnhZ+zhhDUClCW1u60'        # It's your SSH private key (SSH approach)
           repository: ''             # Default is current repository
           branch: 'gh-pages'         # Default is gh-pages for github provider
           jekyll_src: './'           # Default is root directory
@@ -38,5 +38,3 @@ jobs:
           cname: ''                  # Default is to not use a cname
           actor: ''                  # Default is the GITHUB_ACTOR
           pre_build_commands: ''     # Installing additional dependencies (Arch Linux)
-          target_path: '/'           # Deploy to root dir
-          keep_history: false        # Clean historical files
