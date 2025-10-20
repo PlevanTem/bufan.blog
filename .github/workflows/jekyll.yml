@@ -38,3 +38,4 @@ jobs:
           cname: ''                  # Default is to not use a cname
           actor: ''                  # Default is the GITHUB_ACTOR
           pre_build_commands: ''     # Installing additional dependencies (Arch Linux)
+          args: '--trace'  # 新增这一行，让 Jekyll 输出详细错误日志
