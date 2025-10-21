@@ -12,7 +12,10 @@ jobs:
       - uses: actions/checkout@v4  # 拉取代码
 
       - name: Update CA certificates  # 解决SSL证书问题
-        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ca-certificates  # 安装最新根证书
+          sudo update-ca-certificates --fresh      # 强制刷新证书缓存（核心）
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -22,6 +25,19 @@ jobs:
 
       - name: Add Linux platform to Gemfile.lock  # 更新锁文件支持当前平台
         run: bundle lock --add-platform x86_64-linux
+        
+      # 关键步骤2：安装依赖时强制指定SSL证书路径
+      - name: Install dependencies with SSL cert
+        run: |
+          # 明确告诉Ruby系统CA证书的位置
+          export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+          bundle install --path vendor/bundle
+          
+      # 关键步骤3：构建时同样指定SSL证书路径
+      - name: Build site with SSL cert
+        run: |
+          export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+          bundle exec jekyll build --trace  # 保留--trace方便调试
 
       # Use GitHub Actions' cache to cache dependencies on servers
       - uses: actions/cache@v4
