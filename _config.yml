@@ -27,8 +27,12 @@ layouts_dir: ./_layouts
 skin: midnight
 
 exclude:
-  - README.md
+  - vendor/  # 排除依赖安装目录
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/  # 若有其他依赖目录也可一并排除
 
 # Pagination
 paginate: 5
 paginate_path: "/page:num/"
+
