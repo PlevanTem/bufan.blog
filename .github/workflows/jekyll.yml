@@ -14,25 +14,14 @@ jobs:
       - name: Update CA certificates  # 解决SSL证书问题
         run: sudo apt-get update && sudo apt-get install -y ca-certificates
 
-      - name: Set up Ruby  # 安装Ruby，暂时关闭自动缓存（后续手动处理）
+      - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2.0
-          bundler-cache: false  # 先不自动安装，等锁文件更新后再处理
+          bundler-cache: false  # 关闭自动缓存，手动控制
 
-      - name: Add Linux platform to Gemfile.lock  # 先更新锁文件
+      - name: Add Linux platform to Gemfile.lock  # 更新锁文件支持当前平台
         run: bundle lock --add-platform x86_64-linux
-
-      - name: Install dependencies and cache  # 手动安装并缓存依赖
-        run: |
-          bundle install --path vendor/bundle
-          echo "vendor/bundle" >> $GITHUB_PATH  # 确保依赖路径被识别
-        cache:
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          path: vendor/bundle  # 缓存依赖目录
-
-      - name: Build site  # 构建站点
-        run: bundle exec jekyll build
 
       # Use GitHub Actions' cache to cache dependencies on servers
       - uses: actions/cache@v4
@@ -50,7 +39,7 @@ jobs:
         with:
           provider: 'github'         # Default is github
           token: ${{ secrets.GITHUB_TOKEN }} # It's your Personal Access Token(PAT)
-          ssh_private_key: 'SHA256:oy4HWcUUT/5bzOLaxSsOoUu8rQnhZ+zhhDUClCW1u60'        # It's your SSH private key (SSH approach)
+          # ssh_private_key: 'SHA256:oy4HWcUUT/5bzOLaxSsOoUu8rQnhZ+zhhDUClCW1u60'        # 使用内置的GITHUB_TOKEN（无需手动配置PAT） It's your SSH private key (SSH approach)
           repository: ''             # Default is current repository
           branch: 'gh-pages'         # Default is gh-pages for github provider
           jekyll_src: './'           # Default is root directory
