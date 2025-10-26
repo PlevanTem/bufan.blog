@@ -128,7 +128,7 @@ jobs:
               Write-Host "cacert.pem 文件大小: $($file.Length / 1024) KB"
               Get-Content "${{ github.workspace }}/cacert.pem" -TotalCount 10
             fi
-        shell: ${{ matrix.os == 'ubuntu-latest' ? 'bash' : 'pwsh' }}
+        shell: "${{ matrix.os == 'ubuntu-latest' ? 'bash' : 'pwsh' }}"
 
       ## 步骤11：Linux 构建站点（双环境变量确保证书生效）
       - name: Build site (Linux)
