@@ -93,18 +93,21 @@ jobs:
       ########################################################################
       - name: Build site with SSL cert
         run: |
-          $certPath = "$(pwd)/cacert.pem"
-          echo "Using SSL certificate: $certPath"
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            export SSL_CERT_FILE=$certPath
-          else
-            $env:SSL_CERT_FILE = $certPath
-          fi
-          bundle exec jekyll build --trace
-        env:
-          # 确保环境变量传递给子进程
-          SSL_CERT_FILE: ${{ matrix.os == 'ubuntu-latest' ? '$(pwd)/cacert.pem' : '$(Get-Location)/cacert.pem' }}
-          
+            # 根据平台动态获取当前目录并设置证书路径
+            if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+              # Linux 用 bash 语法
+              certPath="$(pwd)/cacert.pem"
+              export SSL_CERT_FILE="$certPath"
+            else
+              # Windows 用 PowerShell 语法
+              $certPath = "$(Get-Location)/cacert.pem"
+              $env:SSL_CERT_FILE = $certPath
+            fi
+            # 打印证书路径用于调试
+            echo "Using SSL certificate: $SSL_CERT_FILE"
+            # 执行构建
+            bundle exec jekyll build --trace
+         
       - uses: jeffreytse/jekyll-deploy-action@v0.6.0
         with:
           provider: 'github'
