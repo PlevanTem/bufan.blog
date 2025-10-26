@@ -115,20 +115,24 @@ jobs:
         shell: pwsh  # 指定使用PowerShell
         # 作用：在Windows环境下替换Ruby默认证书，确保依赖安装时SSL验证通过
 
-      # 新增：验证 cacert.pem 完整性（避免下载不完整导致证书无效）
-      - name: Verify cacert.pem integrity
+      # 新增：验证 cacert.pem 完整性（Linux 版）
+      - name: Verify cacert.pem integrity (Linux)
+        if: matrix.os == 'ubuntu-latest'  # 仅在Linux执行
         run: |
-            if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-              # Linux：检查文件大小（正常约200KB以上）+ 打印前10行确认格式
-              echo "cacert.pem 文件大小: $(du -sh cacert.pem | awk '{print $1}')"
-              head -n 10 cacert.pem
-            else
-              # Windows：检查文件大小 + 打印前10行
-              $file = Get-Item "${{ github.workspace }}/cacert.pem"
-              Write-Host "cacert.pem 文件大小: $($file.Length / 1024) KB"
-              Get-Content "${{ github.workspace }}/cacert.pem" -TotalCount 10
-            fi
-        shell: "${{ matrix.os == 'ubuntu-latest' ? 'bash' : 'pwsh' }}"
+          # 检查文件大小（正常约200KB以上）+ 打印前10行确认格式
+          echo "cacert.pem 文件大小: $(du -sh cacert.pem | awk '{print $1}')"
+          head -n 10 cacert.pem
+        shell: bash  # 直接指定Linux的shell
+
+      # 新增：验证 cacert.pem 完整性（Windows 版）
+      - name: Verify cacert.pem integrity (Windows)
+        if: matrix.os == 'windows-latest'  # 仅在Windows执行
+        run: |
+          # 检查文件大小 + 打印前10行
+          $file = Get-Item "${{ github.workspace }}/cacert.pem"
+          Write-Host "cacert.pem 文件大小: $($file.Length / 1024) KB"
+          Get-Content "${{ github.workspace }}/cacert.pem" -TotalCount 10
+        shell: pwsh  # 直接指定Windows的shell
 
       # 步骤11：Linux 构建站点（双环境变量确保证书生效）  # 修复：注释改为单#，与其他步骤统一
       - name: Build site (Linux)
