@@ -67,61 +67,58 @@ jobs:
       ########################################################################
       # 关键调整3：安装依赖时强制使用下载的CA证书
       ########################################################################
-      - name: Install dependencies with SSL cert (Linux)
-        if: matrix.os == 'ubuntu-latest'  # 仅 Linux 执行
-        run: |
-            curl -o cacert.pem https://curl.se/ca/cacert.pem
-            # Linux (bash) 语法：变量赋值无 $，等号无空格
-            certPath="$(pwd)/cacert.pem"
-            echo "Using SSL certificate: $certPath"
-            export SSL_CERT_FILE="$certPath"  # bash 中设置环境变量
-            bundle install --jobs 4 --retry 3
-        env:
-            # 双重保障：通过env传递变量
-            SSL_CERT_FILE: "${{ github.workspace }}/cacert.pem"
-        shell: bash
-
-      - name: Install dependencies with SSL cert (Windows)
-        if: matrix.os == 'windows-latest'  # 仅 Windows 执行
-        run: |
-            # 获取Ruby的默认证书路径
-            $rubyCertPath = ruby -ropenssl -e "puts OpenSSL::X509::DEFAULT_CERT_FILE"
-            Write-Host "Ruby default cert path: $rubyCertPath"
-            # 复制cacert.pem覆盖Ruby默认证书
-            Copy-Item -Path ".\cacert.pem" -Destination "$rubyCertPath" -Force
-            # 验证复制结果
-            Get-Item "$rubyCertPath
-        shell: pwsh
-
       - uses: actions/cache@v4
         with:
           path: |
             .asdf/**
             vendor/bundle
-          key: ${{ runner.os }}-cache-${{ hashFiles('**/cache.key') }}
+          key: ${{ runner.os }}-cache-${{ hashFiles('**/Gemfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-cache-
+            
+      # 安装依赖（强制使用下载的CA证书）
+      - name: Install dependencies with SSL cert (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          certPath="${{ github.workspace }}/cacert.pem"
+          echo "Using SSL certificate: $certPath"
+          export SSL_CERT_FILE="$certPath"
+          bundle install --jobs 4 --retry 3
+        shell: bash
+
+      - name: Install dependencies with SSL cert (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          $rubyCertPath = ruby -ropenssl -e "puts OpenSSL::X509::DEFAULT_CERT_FILE"
+          Write-Host "Ruby default cert path: $rubyCertPath"
+          Copy-Item -Path "${{ github.workspace }}/cacert.pem" -Destination "$rubyCertPath" -Force
+          Get-Item "$rubyCertPath"  # 闭合引号
+        shell: pwsh
 
       ########################################################################
-      # 关键调整4：构建时明确使用下载的CA证书（覆盖系统默认路径）
+      # 关键调整4：构建时明确使用下载的CA证书（分平台处理环境变量）
       ########################################################################
-      - name: Build site with SSL cert
+      - name: Build site (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
-            # 根据平台动态获取当前目录并设置证书路径
-            if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-              # Linux 用 bash 语法
-              certPath="$(pwd)/cacert.pem"
-              export SSL_CERT_FILE="$certPath"
-            else
-              # Windows 用 PowerShell 语法
-              $certPath = "$(Get-Location)/cacert.pem"
-              $env:SSL_CERT_FILE = $certPath
-            fi
-            # 打印证书路径用于调试
-            echo "Using SSL certificate: $SSL_CERT_FILE"
-            # 执行构建
-            bundle exec jekyll build --trace
-         
+          certPath="${{ github.workspace }}/cacert.pem"
+          export SSL_CERT_FILE="$certPath"
+          echo "Using SSL certificate: $SSL_CERT_FILE"
+          bundle exec jekyll build --trace
+        shell: bash
+
+      - name: Build site (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          $certPath = "${{ github.workspace }}/cacert.pem"
+          $env:SSL_CERT_FILE = $certPath
+          Write-Host "Using SSL certificate: $env:SSL_CERT_FILE"
+          bundle exec jekyll build --trace
+        shell: pwsh
+      
+      #############################
+      # 步骤4：部署
+      #############################
       - uses: jeffreytse/jekyll-deploy-action@v0.6.0
         with:
           provider: 'github'
