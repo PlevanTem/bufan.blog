@@ -1,127 +1,177 @@
 name: Build and Deploy to Github Pages
+# 工作流名称：构建并部署到Github Pages，用于自动构建Jekyll站点并部署到gh-pages分支
 
 on:
   push:
     branches:
       - master
+# 触发条件：当代码推送到master分支时自动执行
 
 jobs:
   build_and_deploy:
     runs-on: ${{ matrix.os }}
+    # 运行环境：基于矩阵配置，同时在Ubuntu和Windows最新版本上执行
     strategy:
-      fail-fast: false
+      fail-fast: false  # 一个平台失败不影响其他平台执行
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]  # 测试的操作系统矩阵
     steps:
+      # 步骤1：检出代码仓库
       - uses: actions/checkout@v4
+        # 作用：将当前仓库代码拉取到GitHub Actions运行环境中，是后续操作的基础
 
-      ########################################################################
-      # 关键调整1：提前下载通用CA证书（curl的证书包更完整），并在所有步骤前准备好
-      ########################################################################
+      # 步骤2：下载通用CA证书（解决SSL证书验证失败的核心步骤）
       - name: Download updated cacert.pem (通用CA证书)
         run: |
-          # 下载curl维护的最新CA证书集合（包含完整CRL信息）
+          # 下载curl维护的最新CA证书集合（包含完整的证书吊销列表CRL信息）
           curl -o cacert.pem https://curl.se/ca/cacert.pem
-          # 显示证书路径，方便调试
+          # 打印证书路径，方便调试时确认证书是否正确下载
           echo "证书路径: $(pwd)/cacert.pem"
+        # 作用：获取完整的CA证书链，解决原错误中"无法获取证书CRL"的问题
 
-      ########################################################################
-      # 关键调整2：平台证书补充（保留，但确保在依赖安装前执行）
-      ########################################################################
+      # 步骤3：Linux系统补充SSL证书（平台特定配置）
       - name: Linux 安装并刷新 SSL 证书
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'  # 仅在Ubuntu系统执行
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y ca-certificates
-          sudo update-ca-certificates --fresh
+          sudo apt-get update -y  # 更新软件源
+          sudo apt-get install -y ca-certificates  # 安装系统CA证书包
+          sudo update-ca-certificates --fresh  # 刷新系统证书缓存
+        # 作用：补充Linux系统默认CA证书，与下载的cacert.pem形成双重保障
 
+      # 步骤4：Windows系统补充SSL证书（平台特定配置）
       - name: Windows 安装并刷新 SSL 证书
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest'  # 仅在Windows系统执行
         run: |
+          # 临时放宽执行策略，允许运行PowerShell脚本
           Set-ExecutionPolicy Bypass -Scope Process -Force
+          # 启用TLS 1.2，避免下载时的协议兼容问题
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+          # 安装Chocolatey包管理器（Windows常用包管理工具）
           iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          # 用Chocolatey安装CA证书包
           choco install -y ca-certificates --no-progress
+          # 刷新Windows系统证书存储
           Update-SystemCaCertificateStore
+        # 作用：补充Windows系统CA证书，解决Windows环境下的证书信任问题
 
-      ########################################################################
-      # 步骤2：配置 Ruby 环境
-      ########################################################################
+      # 步骤5：配置Ruby环境（Jekyll基于Ruby运行）
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@v1  # 使用官方Ruby环境配置工具
         with:
-          ruby-version: 3.2.0
-          bundler-cache: false
+          ruby-version: 3.2.0  # 指定Ruby版本（与错误日志中的版本一致）
+          bundler-cache: false  # 禁用自动缓存（后续将手动配置缓存）
+        # 作用：准备Jekyll运行所需的Ruby环境
 
-      ########################################################################
-      # 步骤3：添加平台支持
-      ########################################################################
+      # 步骤6：为Linux添加平台支持（避免依赖包平台不兼容）
       - name: Add Linux platform to Gemfile.lock
         if: matrix.os == 'ubuntu-latest'
         run: bundle lock --add-platform x86_64-linux
-        
+        # 作用：在Gemfile.lock中添加Linux平台标识，确保安装适合Linux的依赖包
+
+      # 步骤7：为Windows添加平台支持
       - name: 为 Windows 平台添加支持
         if: matrix.os == 'windows-latest'
         run: bundle lock --add-platform x64-mingw-ucrt
-          
-      ########################################################################
-      # 关键调整3：安装依赖时强制使用下载的CA证书
-      ########################################################################
-      - uses: actions/cache@v4
+        # 作用：在Gemfile.lock中添加Windows平台标识，确保安装适合Windows的依赖包
+
+      # 步骤8：配置缓存（加速构建，减少重复操作）
+      - uses: actions/cache@v4  # 使用官方缓存工具
         with:
           path: |
-            .asdf/**
-            vendor/bundle
+            .asdf/**  # Ruby版本管理工具的缓存路径
+            vendor/bundle  # Bundler依赖包的缓存路径
+          # 缓存键：结合操作系统和Gemfile.lock哈希，确保缓存有效性
           key: ${{ runner.os }}-cache-${{ hashFiles('**/Gemfile.lock') }}
+          # 恢复缓存的备选键：若精确匹配失败，尝试匹配同系统的旧缓存
           restore-keys: |
             ${{ runner.os }}-cache-
-            
-      # 安装依赖（强制使用下载的CA证书）
+        # 作用：缓存已安装的依赖包，避免每次构建重复下载，加速流程
+
+      # 步骤9：Linux安装依赖（带SSL证书配置）
       - name: Install dependencies with SSL cert (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
+          # 明确CA证书的绝对路径（使用工作区路径确保准确）
           certPath="${{ github.workspace }}/cacert.pem"
           echo "Using SSL certificate: $certPath"
+          # 设置环境变量，强制Ruby/OpenSSL使用下载的CA证书
           export SSL_CERT_FILE="$certPath"
+          # 安装依赖（4个并行任务，失败重试3次）
           bundle install --jobs 4 --retry 3
-        shell: bash
+        shell: bash  # 指定使用bashshell
+        # 作用：在Linux环境下安装Jekyll依赖，强制使用正确的CA证书避免SSL错误
 
+      # 步骤10：Windows安装依赖（带SSL证书配置）
       - name: Install dependencies with SSL cert (Windows)
         if: matrix.os == 'windows-latest'
         run: |
+          # 获取Ruby默认的证书文件路径（OpenSSL会优先读取该路径）
           $rubyCertPath = ruby -ropenssl -e "puts OpenSSL::X509::DEFAULT_CERT_FILE"
           Write-Host "Ruby default cert path: $rubyCertPath"
+          # 将下载的cacert.pem复制到Ruby默认证书路径（覆盖默认证书）
           Copy-Item -Path "${{ github.workspace }}/cacert.pem" -Destination "$rubyCertPath" -Force
-          Get-Item "$rubyCertPath"  # 闭合引号
-        shell: pwsh
+          # 验证文件是否复制成功（修复了原配置中引号缺失的问题）
+          Get-Item "$rubyCertPath"
+        shell: pwsh  # 指定使用PowerShell
+        # 作用：在Windows环境下替换Ruby默认证书，确保依赖安装时SSL验证通过
 
-      ########################################################################
-      # 关键调整4：构建时明确使用下载的CA证书（分平台处理环境变量）
-      ########################################################################
+      # 新增：验证 cacert.pem 完整性（避免下载不完整导致证书无效）
+      - name: Verify cacert.pem integrity
+        run: |
+            if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+              # Linux：检查文件大小（正常约200KB以上）+ 打印前10行确认格式
+              echo "cacert.pem 文件大小: $(du -sh cacert.pem | awk '{print $1}')"
+              head -n 10 cacert.pem
+            else
+              # Windows：检查文件大小 + 打印前10行
+              $file = Get-Item "${{ github.workspace }}/cacert.pem"
+              Write-Host "cacert.pem 文件大小: $($file.Length / 1024) KB"
+              Get-Content "${{ github.workspace }}/cacert.pem" -TotalCount 10
+            fi
+        shell: ${{ matrix.os == 'ubuntu-latest' ? 'bash' : 'pwsh' }}
+
+      ## 步骤11：Linux 构建站点（双环境变量确保证书生效）
       - name: Build site (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          certPath="${{ github.workspace }}/cacert.pem"
-          export SSL_CERT_FILE="$certPath"
-          echo "Using SSL certificate: $SSL_CERT_FILE"
-          bundle exec jekyll build --trace
-        shell: bash
-
+            # 1. 明确证书绝对路径（使用 github.workspace 确保路径唯一）
+            CERT_PATH="${{ github.workspace }}/cacert.pem"
+            # 2. 同时设置系统级 + Ruby 专属证书变量
+            export SSL_CERT_FILE="$CERT_PATH"
+            export RUBY_OPENSSL_CA_CERTS_FILE="$CERT_PATH"
+            # 3. 验证环境变量是否生效（调试用，可保留）
+            echo "SSL_CERT_FILE: $SSL_CERT_FILE"
+            echo "RUBY_OPENSSL_CA_CERTS_FILE: $RUBY_OPENSSL_CA_CERTS_FILE"
+            # 4. 执行 Jekyll 构建（--trace 保留详细日志）
+            bundle exec jekyll build --trace
+          shell: bash
+          # 额外保障：通过 env 再次传递变量（双重保险）
+        env:
+            SSL_CERT_FILE: "${{ github.workspace }}/cacert.pem"
+            RUBY_OPENSSL_CA_CERTS_FILE: "${{ github.workspace }}/cacert.pem"
+    
+      # 步骤12：Windows构建站点（带SSL证书配置）
       - name: Build site (Windows)
         if: matrix.os == 'windows-latest'
         run: |
+          # 再次指定CA证书路径（Windows环境下的路径格式）
           $certPath = "${{ github.workspace }}/cacert.pem"
           $env:SSL_CERT_FILE = $certPath
           Write-Host "Using SSL certificate: $env:SSL_CERT_FILE"
+          # 执行Jekyll构建（输出详细日志）
           bundle exec jekyll build --trace
         shell: pwsh
-      
-      #############################
-      # 步骤4：部署
-      #############################
-      - uses: jeffreytse/jekyll-deploy-action@v0.6.0
+        env:
+          SSL_CERT_FILE: "${{ github.workspace }}/cacert.pem"
+          RUBY_OPENSSL_CA_CERTS_FILE: "${{ github.workspace }}/cacert.pem"
+        
+      # 步骤13：部署到Github Pages
+      - uses: jeffreytse/jekyll-deploy-action@v0.6.0  # 使用Jekyll部署专用工具
         with:
-          provider: 'github'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: 'gh-pages'
-          args: '--trace'
+          provider: 'github'  # 部署目标平台为GitHub
+          token: ${{ secrets.GITHUB_TOKEN }}  # 使用GitHub自动生成的令牌（权限足够部署）
+          branch: 'gh-pages'  # 部署到gh-pages分支（GitHub Pages默认分支）
+          source: ./_site     # 关键：指定Jekyll构建产物的目录（必须是 _site）
+          target: ./          # 部署到gh-pages分支的根目录（让GitHub Pages直接读取）
+          args: '--trace'     # 部署时输出详细日志
+        # 作用：将构建好的站点文件部署到gh-pages分支，完成GitHub Pages发布
