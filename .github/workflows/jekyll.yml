@@ -7,41 +7,50 @@ on:
 
 jobs:
   build_and_deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # 一个平台失败不影响另一个
+      matrix:
+        os: [ubuntu-latest, windows-latest] # Linux 和 Windows 双平台
     steps:
-      - uses: actions/checkout@v4  # 拉取代码
+      ########################################################################
+      # 步骤1：拉取项目代码
+      ########################################################################
+      - uses: actions/checkout@v4
 
       - name: Update CA certificates  # 解决SSL证书问题
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ca-certificates  # 安装最新根证书
           sudo update-ca-certificates --fresh      # 强制刷新证书缓存（核心）
-
+      
+      ########################################################################
+      # 步骤2：配置 Ruby 环境（禁用初始缓存，避免旧锁文件干扰）
+      ########################################################################
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2.0
           bundler-cache: false  # 关键：禁用旧缓存，避免覆盖新锁文件
 
-      # 关键步骤1：添加 Linux 平台支持到锁文件
-      - name: Add Linux platform to Gemfile.lock  
+      ########################################################################
+      # 步骤3：添加当前平台到 Gemfile.lock（解决平台不兼容核心步骤）
+      ########################################################################
+      # 步骤3.1：添加 Linux 平台支持
+      - name: Add Linux platform to Gemfile.lock 
+        if: matrix.os == 'ubuntu-latest' # 仅 Linux 执行      
         run: bundle lock --add-platform x86_64-linux
-      
+        
+      - name: 为 Windows 平台添加支持
+        if: matrix.os == 'windows-latest' # 仅 Windows 执行
+        run: bundle lock --add-platform x64-mingw-ucrt
+          
+      ########################################################################
+      # 步骤4：安装依赖 + 启用平台专属缓存（加速后续构建）
+      ########################################################################
       # 再安装依赖（此时会生成适配 Linux 的依赖）
       - name: Install dependencies
         run: bundle install --jobs 4 --retry 3
-      
-      # 关键步骤2：指定 SSL_CERT_FILE 环境变量
-      - name: Download updated cacert.pem
-        run: curl -o cacert.pem https://curl.se/ca/cacert.pem
-
-      # 关键步骤3：构建时同样指定SSL证书路径
-      - name: Build site with SSL cert
-        env:
-          SSL_CERT_FILE: ${{ github.workspace }}/cacert.pem
-        run: |
-          export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt # 明确告诉Ruby系统CA证书的位置
-          bundle exec jekyll build --trace  # 保留--trace方便调试
       
       # Use GitHub Actions' cache to cache dependencies on servers
       - uses: actions/cache@v4
@@ -53,7 +62,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cache-
 
-      # Use GitHub Deploy Action to build and deploy to Github
+      ########################################################################
+      # 步骤5：执行 Jekyll 构建
+      ########################################################################
+      # 指定 SSL_CERT_FILE 环境变量
+      - name: Download updated cacert.pem
+        run: curl -o cacert.pem https://curl.se/ca/cacert.pem
+
+      # 构建时同样指定SSL证书路径
+      - name: Build site with SSL cert
+        env:
+          SSL_CERT_FILE: ${{ github.workspace }}/cacert.pem
+        run: |
+          export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt # 明确告诉Ruby系统CA证书的位置
+          bundle exec jekyll build --trace  # 保留--trace方便调试
+      
       # For latest version: `jeffreytse/jekyll-deploy-action@master`
       - uses: jeffreytse/jekyll-deploy-action@v0.6.0
         with:
@@ -70,4 +93,4 @@ jobs:
           cname: ''                  # Default is to not use a cname
           actor: ''                  # Default is the GITHUB_ACTOR
           pre_build_commands: ''     # Installing additional dependencies (Arch Linux)
-          args: '--trace'  # 新增这一行，让 Jekyll 输出详细错误日志
+          args: '--trace'            # 新增这一行，让 Jekyll 输出详细错误日志
