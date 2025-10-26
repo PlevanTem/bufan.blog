@@ -23,8 +23,12 @@ jobs:
           ruby-version: 3.2.0
           bundler-cache: true  # 自动运行 bundle install 并缓存依赖
 
-      - name: Add Linux platform to Gemfile.lock  # 更新锁文件支持当前平台
+      # 关键步骤1：添加 Linux 平台支持到锁文件
+      - name: Add Linux platform to Gemfile.lock  
         run: bundle lock --add-platform x86_64-linux
+      # 再安装依赖（此时会生成适配 Linux 的依赖）
+      - name: Install dependencies
+        run: bundle install --jobs 4 --retry 3
         
       # 关键步骤2：指定 SSL_CERT_FILE 环境变量
       - name: Download updated cacert.pem
