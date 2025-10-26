@@ -24,7 +24,7 @@ group :jekyll_plugins do
   gem "jekyll-paginate"
   gem "jekyll-sitemap"
   # 注意：html-proofer 5.0.8 可能与 github-pages 的依赖冲突，如需使用可尝试放宽版本限制
-  gem 'html-proofer', '~> 5.0' # 或暂时注释掉，后续再调试
+  # gem 'html-proofer', '~> 5.0' # 或暂时注释掉，后续再调试
 end
 
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem

@@ -11,6 +11,7 @@ This article is a collection of my most often used original prompt for reading a
 
 ### Guided Reading with PQ3R method（读前准备）
 场景：根据书本的章节和内容，提出思考问题再寻找答案 <!--more-->
+{% raw %}
 ```
 Imagine you're a reader, use **PQ3R Method**, to guide me to read and understand the book {{}}.
 
@@ -66,7 +67,7 @@ Could we function without working memory?
 (Relationships)
 How does working memory relate to short-term memoryand long-term memory?
 ```
-
+{% endraw %}
 
 ### Structured Summary
 场景：根据提供的文字内容，按5W2H方法总结最重要的、有意义的关键点，并通过形象的例子，用直观易懂且逻辑清晰的语言组织帮助我记忆。
@@ -104,8 +105,3 @@ Discussion/conclusion
 - Are there any important limitations?
 - Are there any key recommendations?
 ```
-
-
-
-
-
