@@ -67,17 +67,25 @@ jobs:
       ########################################################################
       # 关键调整3：安装依赖时强制使用下载的CA证书
       ########################################################################
-      - name: Install dependencies with SSL cert
+      - name: Install dependencies with SSL cert (Linux)
+        if: matrix.os == 'ubuntu-latest'  # 仅 Linux 执行
         run: |
-          # 根据平台设置证书路径环境变量
-          $certPath = "$(pwd)/cacert.pem"
-          echo "Using SSL certificate: $certPath"
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            export SSL_CERT_FILE=$certPath
-          else
-            $env:SSL_CERT_FILE = $certPath
-          fi
-          bundle install --jobs 4 --retry 3
+            # Linux (bash) 语法：变量赋值无 $，等号无空格
+            certPath="$(pwd)/cacert.pem"
+            echo "Using SSL certificate: $certPath"
+            export SSL_CERT_FILE="$certPath"  # bash 中设置环境变量
+            bundle install --jobs 4 --retry 3
+        shell: bash
+
+      - name: Install dependencies with SSL cert (Windows)
+        if: matrix.os == 'windows-latest'  # 仅 Windows 执行
+        run: |
+            # Windows (PowerShell) 语法：变量用 $ 定义
+            $certPath = "$(Get-Location)/cacert.pem"
+            Write-Host "Using SSL certificate: $certPath"
+            $env:SSL_CERT_FILE = $certPath  # PowerShell 中设置环境变量
+            bundle install --jobs 4 --retry 3
+        shell: pwsh
 
       - uses: actions/cache@v4
         with:
