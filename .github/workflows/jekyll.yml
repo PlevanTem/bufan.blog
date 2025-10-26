@@ -21,6 +21,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2.0
+          bundler-cache: true  # 自动运行 bundle install 并缓存依赖
 
       - name: Add Linux platform to Gemfile.lock  # 更新锁文件支持当前平台
         run: bundle lock --add-platform x86_64-linux
