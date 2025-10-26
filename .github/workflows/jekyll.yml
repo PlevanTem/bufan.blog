@@ -21,24 +21,23 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2.0
-          bundler-cache: false  # 关闭自动缓存，手动控制
 
       - name: Add Linux platform to Gemfile.lock  # 更新锁文件支持当前平台
         run: bundle lock --add-platform x86_64-linux
         
-      # 关键步骤2：安装依赖时强制指定SSL证书路径
-      - name: Install dependencies with SSL cert
-        run: |
-          # 明确告诉Ruby系统CA证书的位置
-          export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
-          bundle install --path vendor/bundle
+      # 关键步骤2：指定 SSL_CERT_FILE 环境变量
+      - name: Download updated cacert.pem
+        run: curl -o cacert.pem https://curl.se/ca/cacert.pem
+      - name: Build site with updated SSL certs
+        env:
+          SSL_CERT_FILE: ${{ github.workspace }}/cacert.pem
           
       # 关键步骤3：构建时同样指定SSL证书路径
       - name: Build site with SSL cert
         run: |
-          export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+          export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt # 明确告诉Ruby系统CA证书的位置
           bundle exec jekyll build --trace  # 保留--trace方便调试
-
+      
       # Use GitHub Actions' cache to cache dependencies on servers
       - uses: actions/cache@v4
         with:

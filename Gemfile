@@ -14,7 +14,7 @@ source "https://rubygems.org"
 
 # If you want to use GitHub Pages, remove the "gem "jekyll"" above and
 # uncomment the line below. To upgrade, run `bundle update github-pages`.
-gem "github-pages", group: :jekyll_plugins
+gem "github-pages"
 
 # If you have any plugins, put them here!
 group :jekyll_plugins do
@@ -23,9 +23,9 @@ group :jekyll_plugins do
   gem "jekyll-remote-theme"
   gem "jekyll-paginate"
   gem "jekyll-sitemap"
+  # 注意：html-proofer 5.0.8 可能与 github-pages 的依赖冲突，如需使用可尝试放宽版本限制
+  gem 'html-proofer', '~> 5.0' # 或暂时注释掉，后续再调试
 end
-
-gem 'html-proofer', '~> 5.0.8'
 
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem
 # and associated library.
