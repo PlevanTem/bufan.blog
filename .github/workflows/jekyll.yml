@@ -144,8 +144,8 @@ jobs:
             echo "RUBY_OPENSSL_CA_CERTS_FILE: $RUBY_OPENSSL_CA_CERTS_FILE"
             # 4. 执行 Jekyll 构建（--trace 保留详细日志）
             bundle exec jekyll build --trace
-          shell: bash
-          # 额外保障：通过 env 再次传递变量（双重保险）
+        shell: bash
+        # 额外保障：通过 env 再次传递变量（双重保险）
         env:
             SSL_CERT_FILE: "${{ github.workspace }}/cacert.pem"
             RUBY_OPENSSL_CA_CERTS_FILE: "${{ github.workspace }}/cacert.pem"
