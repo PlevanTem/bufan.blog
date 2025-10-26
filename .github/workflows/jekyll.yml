@@ -130,7 +130,7 @@ jobs:
             fi
         shell: "${{ matrix.os == 'ubuntu-latest' ? 'bash' : 'pwsh' }}"
 
-      ## 步骤11：Linux 构建站点（双环境变量确保证书生效）
+      # 步骤11：Linux 构建站点（双环境变量确保证书生效）  # 修复：注释改为单#，与其他步骤统一
       - name: Build site (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -147,8 +147,8 @@ jobs:
         shell: bash
         # 额外保障：通过 env 再次传递变量（双重保险）
         env:
-            SSL_CERT_FILE: "${{ github.workspace }}/cacert.pem"
-            RUBY_OPENSSL_CA_CERTS_FILE: "${{ github.workspace }}/cacert.pem"
+          SSL_CERT_FILE: "${{ github.workspace }}/cacert.pem"  # 修复：缩进统一为2个空格（与其他env字段一致）
+          RUBY_OPENSSL_CA_CERTS_FILE: "${{ github.workspace }}/cacert.pem"
     
       # 步骤12：Windows构建站点（带SSL证书配置）
       - name: Build site (Windows)
@@ -157,13 +157,14 @@ jobs:
           # 再次指定CA证书路径（Windows环境下的路径格式）
           $certPath = "${{ github.workspace }}/cacert.pem"
           $env:SSL_CERT_FILE = $certPath
+          $env:RUBY_OPENSSL_CA_CERTS_FILE = $certPath  # 补充：Windows也添加Ruby专属证书变量
           Write-Host "Using SSL certificate: $env:SSL_CERT_FILE"
           # 执行Jekyll构建（输出详细日志）
           bundle exec jekyll build --trace
         shell: pwsh
         env:
           SSL_CERT_FILE: "${{ github.workspace }}/cacert.pem"
-          RUBY_OPENSSL_CA_CERTS_FILE: "${{ github.workspace }}/cacert.pem"
+          RUBY_OPENSSL_CA_CERTS_FILE: "${{ github.workspace }}/cacert.pem"  # 补充：与Linux保持一致
         
       # 步骤13：部署到Github Pages
       - uses: jeffreytse/jekyll-deploy-action@v0.6.0  # 使用Jekyll部署专用工具
