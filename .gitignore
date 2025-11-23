@@ -1,6 +1,4 @@
-_site
-_drafts
-.sass-cache
-.jekyll-cache
-.jekyll-metadata
-vendor
+```
+# Dependency lock files
+Gemfile.lock
+```
