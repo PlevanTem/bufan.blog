@@ -24,9 +24,10 @@ jobs:
       - name: Download updated cacert.pem (通用CA证书)
         run: |
           # 下载curl维护的最新CA证书集合（包含完整的证书吊销列表CRL信息）
+          # curl 在 Windows 10+ 和 Linux 上都可用
           curl -o cacert.pem https://curl.se/ca/cacert.pem
           # 打印证书路径，方便调试时确认证书是否正确下载
-          echo "证书路径: $(pwd)/cacert.pem"
+          echo "证书已下载到: ${{ github.workspace }}/cacert.pem"
         # 作用：获取完整的CA证书链，解决原错误中"无法获取证书CRL"的问题
 
       # 步骤3：Linux系统补充SSL证书（平台特定配置）
@@ -38,21 +39,15 @@ jobs:
           sudo update-ca-certificates --fresh  # 刷新系统证书缓存
         # 作用：补充Linux系统默认CA证书，与下载的cacert.pem形成双重保障
 
-      # 步骤4：Windows系统补充SSL证书（平台特定配置）
-      - name: Windows 安装并刷新 SSL 证书
+      # 步骤4：Windows系统配置（平台特定配置）
+      - name: Windows 配置环境
         if: matrix.os == 'windows-latest'  # 仅在Windows系统执行
         run: |
-          # 临时放宽执行策略，允许运行PowerShell脚本
-          Set-ExecutionPolicy Bypass -Scope Process -Force
-          # 启用TLS 1.2，避免下载时的协议兼容问题
+          # 启用TLS 1.2，确保下载时的协议兼容
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-          # 安装Chocolatey包管理器（Windows常用包管理工具）
-          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-          # 用Chocolatey安装CA证书包
-          choco install -y ca-certificates --no-progress
-          # 刷新Windows系统证书存储
-          Update-SystemCaCertificateStore
-        # 作用：补充Windows系统CA证书，解决Windows环境下的证书信任问题
+          Write-Host "Windows环境已配置，将使用下载的cacert.pem证书文件"
+        shell: pwsh
+        # 作用：配置Windows环境，GitHub Actions runner已包含系统证书，无需额外安装
 
       # 步骤5：配置Ruby环境（Jekyll基于Ruby运行）
       - name: Set up Ruby
@@ -105,15 +100,32 @@ jobs:
       - name: Install dependencies with SSL cert (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          # 获取Ruby默认的证书文件路径（OpenSSL会优先读取该路径）
-          $rubyCertPath = ruby -ropenssl -e "puts OpenSSL::X509::DEFAULT_CERT_FILE"
-          Write-Host "Ruby default cert path: $rubyCertPath"
-          # 将下载的cacert.pem复制到Ruby默认证书路径（覆盖默认证书）
-          Copy-Item -Path "${{ github.workspace }}/cacert.pem" -Destination "$rubyCertPath" -Force
-          # 验证文件是否复制成功（修复了原配置中引号缺失的问题）
-          Get-Item "$rubyCertPath"
+          # 设置证书文件路径
+          $certPath = "${{ github.workspace }}/cacert.pem"
+          Write-Host "Using SSL certificate: $certPath"
+          
+          # 设置环境变量（优先使用环境变量方式）
+          $env:SSL_CERT_FILE = $certPath
+          $env:RUBY_OPENSSL_CA_CERTS_FILE = $certPath
+          
+          # 同时复制到Ruby默认证书路径（作为备用方案）
+          try {
+            $rubyCertPath = ruby -ropenssl -e "puts OpenSSL::X509::DEFAULT_CERT_FILE" 2>$null
+            if ($rubyCertPath -and (Test-Path (Split-Path $rubyCertPath -Parent))) {
+              Copy-Item -Path $certPath -Destination $rubyCertPath -Force
+              Write-Host "Certificate also copied to: $rubyCertPath"
+            }
+          } catch {
+            Write-Host "Could not copy to Ruby default path, using environment variables only"
+          }
+          
+          # 安装依赖（4个并行任务，失败重试3次）
+          bundle install --jobs 4 --retry 3
         shell: pwsh  # 指定使用PowerShell
-        # 作用：在Windows环境下替换Ruby默认证书，确保依赖安装时SSL验证通过
+        env:
+          SSL_CERT_FILE: "${{ github.workspace }}/cacert.pem"
+          RUBY_OPENSSL_CA_CERTS_FILE: "${{ github.workspace }}/cacert.pem"
+        # 作用：在Windows环境下配置SSL证书，确保依赖安装时SSL验证通过
 
       # 新增：验证 cacert.pem 完整性（Linux 版）
       - name: Verify cacert.pem integrity (Linux)

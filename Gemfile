@@ -16,11 +16,12 @@ source "https://rubygems.org"
 # uncomment the line below. To upgrade, run `bundle update github-pages`.
 gem "github-pages"
 
+# gem "jekyll-remote-theme"
+
 # If you have any plugins, put them here!
 group :jekyll_plugins do
   gem "jekyll-feed", "~> 0.12"
   gem "jekyll-seo-tag", "~> 2.6"
-  gem "jekyll-remote-theme"
   gem "jekyll-paginate"
   gem "jekyll-sitemap"
   # 注意：html-proofer 5.0.8 可能与 github-pages 的依赖冲突，如需使用可尝试放宽版本限制
