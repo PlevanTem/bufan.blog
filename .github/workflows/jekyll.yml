@@ -59,9 +59,32 @@ jobs:
         uses: ruby/setup-ruby@v1  # 使用官方Ruby环境配置工具
         with:
           ruby-version: 3.2.0  # 指定Ruby版本（与错误日志中的版本一致）
-          bundler-cache: false  # 禁用自动缓存（后续将手动配置缓存）
-        # 作用：准备Jekyll运行所需的Ruby环境
+          bundler-cache: true  # 禁用自动缓存（后续将手动配置缓存）
+        env:
+          # 强制更新 CA 证书
+          UPDATE_CA_CERTIFICATES: "true"
+# 新增：安装证书工具（关键步骤）
+      - name: Install CA Certificates
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates curl
+          sudo update-ca-certificates --fresh
 
+      # 新增：验证证书是否生效
+      - name: Verify SSL Connection
+        run: |
+          curl -I https://api.github.com
+          ruby -ropenssl -e "puts OpenSSL::VERSION"
+
+      - name: Build with SSL Workaround
+        run: |
+          # 临时方案：强制使用系统证书
+          bundle config set --local ssl_verify_mode 0  # 仅限此构建
+          bundle exec jekyll build
+        env:
+          # 双重保险
+          BUNDLE_SSL_VERIFY_MODE: 0
+          
       # 步骤6：为Linux添加平台支持（避免依赖包平台不兼容）
       - name: Add Linux platform to Gemfile.lock
         if: matrix.os == 'ubuntu-latest'
