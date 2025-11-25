@@ -20,16 +20,16 @@ jobs:
         with:
           submodules: true
           
+      - name: Fix dependencies (add Linux platform)
+        run: |
+          bundle lock --add-platform x86_64-linux
+          bundle install  # 重新安装适配 Linux 的依赖
+          
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
           bundler-cache: true  # 自动安装 Bundler 和依赖，缓存到 vendor/bundle
-          
-      - name: Fix dependencies (add Linux platform)
-        run: |
-          bundle lock --add-platform x86_64-linux
-          bundle install  # 重新安装适配 Linux 的依赖
           
       - name: Build with Jekyll
         run: bundle exec jekyll build
