@@ -91,10 +91,10 @@ defaults:
 
 # Site Author
 author:
-  name:
-  picture:
-  email:
-  twitter:
+  name: "Bufan Deng"
+  picture: "/assets/memoji.png"
+  email: "178316470@qq.com"
+  twitter: 
   links:
     - title:
       url:

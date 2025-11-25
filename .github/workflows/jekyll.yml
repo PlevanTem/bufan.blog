@@ -18,19 +18,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true  # 确保获取主题子模块
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2' 
-          bundler-cache: true  # 启用自动缓存
+          submodules: true
+          
+      - name: Configure RubyGems mirror
+        run: |
+          gem sources --remove https://rubygems.org/
+          gem sources --add https://gems.ruby-china.com/
 
       - name: Fix dependencies
         run: |
           rm -f Gemfile.lock
           bundle lock --add-platform x86_64-linux
           bundle install
+          
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2' 
+          bundler-cache: false
 
       - name: Build with Jekyll
         run: bundle exec jekyll build
