@@ -1,49 +1,50 @@
-name: Build and Deploy to Github Pages
-
+name: Deploy Jekyll Site
 on:
   push:
-    branches:
-      - master
+    branches: [master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  build_and_deploy:
-    runs-on: ubuntu-latest  # 简化：仅使用 Ubuntu 构建（GitHub Pages 服务器是 Linux）
-    
-    # 必需权限（GitHub Pages 部署要求）
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
+  deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          submodules: true  # 确保获取远程主题（如 so-simple-theme）
+          submodules: true  # 确保获取主题子模块
 
-      # 步骤1: 配置 Ruby 环境
-      - name: Set up Ruby
+      - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'  # 使用最新 patch 版本
-          bundler-cache: true  # 启用自动缓存（推荐）
+          ruby-version: '3.2' 
+          bundler-cache: true  # 启用自动缓存
 
-      # 步骤2: 构建 Jekyll 站点
-      - name: Build Jekyll site
-        run: bundle exec jekyll build --baseurl "" --trace
+      - name: Fix dependencies
+        run: |
+          rm -f Gemfile.lock
+          bundle lock --add-platform x86_64-linux
+          bundle install
+
+      - name: Build with Jekyll
+        run: bundle exec jekyll build
         env:
-          JEKYLL_ENV: production  # 确保使用生产环境配置
+          JEKYLL_ENV: production
 
-      # 步骤3: 上传构建产物
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./_site
 
-      # 步骤4: 部署到 GitHub Pages（使用官方 Action）
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
