@@ -60,6 +60,12 @@ jobs:
       # 步骤5: 构建 Jekyll 站点
       - name: Build Jekyll site
         run: bundle exec jekyll build --trace
+      
+      # 步骤6：上传Jekyll静态文件artifacts
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
 
       # 步骤6: 部署到 GitHub Pages
       - name: Deploy to GitHub Pages
