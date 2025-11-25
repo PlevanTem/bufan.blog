@@ -7,72 +7,43 @@ on:
 
 jobs:
   build_and_deploy:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest  # 简化：仅使用 Ubuntu 构建（GitHub Pages 服务器是 Linux）
+    
+    # 必需权限（GitHub Pages 部署要求）
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true  # 确保获取远程主题（如 so-simple-theme）
 
       # 步骤1: 配置 Ruby 环境
-      # 使用官方 action，它会自动处理很多环境问题
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2.0
-          # 禁用自动缓存，我们将手动控制
-          bundler-cache: false
+          ruby-version: '3.2'  # 使用最新 patch 版本
+          bundler-cache: true  # 启用自动缓存（推荐）
 
-      # 步骤2: 配置 Bundler 并安装依赖
-      - name: Install dependencies
-        run: |
-          # 告诉 Bundler 将 gems 安装到项目内的 vendor/bundle 目录
-          bundle config set path 'vendor/bundle'
-          # 安装依赖
-          bundle install --jobs 4 --retry 3
-        env:
-          # 在某些特殊情况下，显式指定 SSL 证书可能有帮助，但通常不是必需的
-          # 这一步主要是为了应对可能的网络问题，作为一个备选方案
-          SSL_CERT_FILE: ${{ matrix.os == 'windows-latest' ? '' : '/etc/ssl/certs/ca-certificates.crt' }}
-
-      # 步骤3: 缓存依赖
-      # 在安装完依赖之后进行缓存，这样下次构建可以直接复用
-      - name: Cache gems
-        uses: actions/cache@v4
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-
-      # 步骤4: 为不同平台添加特定支持（如果需要）
-      # 这一步是可选的，但如果你的 Gemfile 中有平台特定的依赖，就需要它
-      - name: Add platform support
-        run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            bundle lock --add-platform x86_64-linux
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            bundle lock --add-platform x64-mingw-ucrt
-          fi
-
-      # 步骤5: 构建 Jekyll 站点
+      # 步骤2: 构建 Jekyll 站点
       - name: Build Jekyll site
-        run: bundle exec jekyll build --trace
-      
-      # 步骤6：上传Jekyll静态文件artifacts
+        run: bundle exec jekyll build --baseurl "" --trace
+        env:
+          JEKYLL_ENV: production  # 确保使用生产环境配置
+
+      # 步骤3: 上传构建产物
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./_site
 
-      # 步骤6: 部署到 GitHub Pages
+      # 步骤4: 部署到 GitHub Pages（使用官方 Action）
       - name: Deploy to GitHub Pages
-        uses: jeffreytse/jekyll-deploy-action@v0.6.0
-        with:
-          provider: 'github'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: 'gh-pages'
-          source: ./_site
-          target: ./
+        id: deployment
+        uses: actions/deploy-pages@v4
