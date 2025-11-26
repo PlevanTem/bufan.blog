@@ -19,7 +19,7 @@ skin: "/assets/css/skins/default.css"
 locale: zh-CN
 title: "Bufan's Blog"
 description: "写想写的 记想记的."
-baseurl: "" # the subpath of your site, e.g. "/blog"
+baseurl: "bufan.blog" # the subpath of your site, e.g. "/blog"
 url: "https://plevantem.github.io" # the base hostname & protocol for your site e.g. "https://plevantem.github.io"
 logo: "/assets/memoji.png" # path of site logo, e.g. "/images/logo.png"
 date_format: "%B %-d, %Y"
