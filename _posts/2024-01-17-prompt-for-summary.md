@@ -7,7 +7,7 @@ tags: [ChatGPT,Prompt]
 ---
 
 This article is a collection of my most often used original prompt for reading and summarizing.
-
+<!--more-->
 
 ### Guided Reading with PQ3R method（读前准备）
 场景：根据书本的章节和内容，提出思考问题再寻找答案 <!--more-->
