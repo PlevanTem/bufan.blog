@@ -105,3 +105,15 @@ footer_links:
   - title: Feed
     url: atom.xml
     icon: fas fa-rss-square
+    
+    
+# 控制摘要长度（字符数）
+excerpt_length: 160  # 默认通常是 250-300，减少这个值
+
+# 对于 so-simple-theme 主题，可能需要这样配置
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      excerpt_separator: "<!--more-->"
