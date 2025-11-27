@@ -64,14 +64,17 @@ search_full_content: false # can have performance implications for large sites
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
-# exclude:
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - docs/
+  - .gitignore
+  - README.md
 
 plugins:
   - jekyll-seo-tag
@@ -79,6 +82,8 @@ plugins:
   - jekyll-feed
   - jekyll-paginate
 
+# 控制摘要长度（字符数）
+excerpt_length: 160  # 默认通常是 250-300，减少这个值
 # Front Matter Defaults
 defaults:
   # Posts defaults
@@ -88,6 +93,7 @@ defaults:
     values:
       layout: post
       share: true
+      excerpt_separator: "<!--more-->"
 
 # Site Author
 author:
@@ -107,13 +113,3 @@ footer_links:
     icon: fas fa-rss-square
     
     
-# 控制摘要长度（字符数）
-excerpt_length: 160  # 默认通常是 250-300，减少这个值
-
-# 对于 so-simple-theme 主题，可能需要这样配置
-defaults:
-  - scope:
-      path: ""
-      type: "posts"
-    values:
-      excerpt_separator: "<!--more-->"
