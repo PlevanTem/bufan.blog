@@ -1,0 +1,14 @@
+# Sample Authors
+# Remove file or replace with your own
+
+Bufan Deng:
+  name: Bufan666
+  picture: /assets/memoji.png
+  twitter: "@thegreatdbf"
+  links:
+    - title: Twitter
+      url: https://twitter.com/thegreatdbf
+      icon: fab fa-twitter-square
+    - title: Instgram
+      url: 
+      icon: fab fa-instagram-square

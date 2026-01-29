@@ -1,0 +1,78 @@
+# Jekyll 项目标准 .gitignore
+# 适用于 GitHub Pages 部署的 Jekyll 博客
+
+## 生成的站点内容 (最重要!)
+_site/
+.build/
+.jekyll-cache/
+.jekyll-metadata
+
+## Ruby 依赖
+.bundle/
+vendor/bundle/
+vendor/cache/
+vendor/gems/
+vendor/ruby/
+
+## Ruby 特定
+.rvmrc
+.rbenv-vars
+.ruby-gemset
+.ruby-version
+Gemfile.lock  # 注意: 对于团队项目，通常应该提交 Gemfile.lock
+*.gem
+
+## 环境变量
+.env
+.env.*
+*.env
+
+## 操作系统
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*~
+*.lock
+
+## 编辑器
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# JetBrains
+.idea/
+*.iml
+
+# Emacs
+*~
+\#*\#
+.\#*
+*.\#*
+
+# Vim
+*.swp
+*.swo
+tags
+
+## 测试
+coverage/
+spec/reports/
+tmp/
+log/
+
+## 部署
+.deploy/
+deploy/
