@@ -26,11 +26,6 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
           
-      - name: Fix dependencies (add Linux platform)
-        run: |
-          bundle lock --add-platform x86_64-linux
-          bundle install
-          
       - name: Build with Jekyll
         run: bundle exec jekyll build
         env:

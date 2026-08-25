@@ -1,5 +1,5 @@
 # Gemfile - 专为 GitHub Pages 优化
-source "https://gems.ruby-china.com"  # 修复：移除末尾空格
+source "https://rubygems.org"
 
 # 方案A：使用 github-pages（推荐用于GitHub Pages）
 gem "github-pages", group: :jekyll_plugins
